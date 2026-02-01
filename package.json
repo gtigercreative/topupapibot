@@ -2,6 +2,7 @@
 {
   "name": "gold-topup-system",
   "version": "1.0.0",
+  "type": "module",
   "description": "Auto Topup System for TikTok and SociaBuzz",
   "main": "index.tsx",
   "dependencies": {
