@@ -7,10 +7,14 @@ const supabase = createClient(
 );
 
 export default async function handler(req, res) {
-  console.log(`[${req.method}] Incoming Webhook at ${new Date().toISOString()}`);
+  const webhookSecret = process.env.WEBHOOK_SECRET;
+  
+  // Ambil token dari mana saja (TikFinity di query, SociaBuzz di header/body)
+  const incomingToken = req.headers['x-sociabuzz-token'] || req.body?.webhook_token || req.query?.token;
 
-  if (req.method !== 'POST' && req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method Not Allowed' });
+  // Verifikasi Keamanan
+  if (webhookSecret && incomingToken !== webhookSecret) {
+    return res.status(401).json({ error: 'Unauthorized: Invalid Security Token' });
   }
 
   try {
@@ -22,15 +26,15 @@ export default async function handler(req, res) {
     let externalId = '';
     let multiplier = 1;
 
-    // 1. TIKFINITY
+    // DETEKSI TIKFINITY
     if (dataInput.coins || dataInput.gift_name) {
       source = 'tiktok';
       tiktokUsername = dataInput.nickname || dataInput.uniqueId || dataInput.username;
       amount = parseFloat(dataInput.coins) || 0;
       externalId = dataInput.msgId || `tk_${Date.now()}`;
-      multiplier = 1; 
+      multiplier = 1; // 1 Koin = 1 Gold
     } 
-    // 2. SOCIABUZZ
+    // DETEKSI SOCIABUZZ
     else if (dataInput.voter_name || dataInput.amount) {
       source = 'sociabuzz';
       tiktokUsername = dataInput.voter_name; 
@@ -40,12 +44,11 @@ export default async function handler(req, res) {
     }
 
     if (!tiktokUsername || amount <= 0) {
-      return res.status(400).json({ error: 'Invalid Data', received: dataInput });
+      return res.status(400).json({ error: 'Missing Required Fields' });
     }
 
     const cleanUsername = tiktokUsername.replace('@', '').trim();
 
-    // Eksekusi RPC
     const { data, error } = await supabase.rpc('process_auto_topup', {
       p_tiktok_username: cleanUsername,
       p_amount_original: amount,
@@ -54,16 +57,11 @@ export default async function handler(req, res) {
       p_rate_multiplier: multiplier
     });
 
-    if (error) {
-      console.error('Supabase RPC Error:', error);
-      return res.status(500).json({ error: error.message });
-    }
+    if (error) throw error;
 
-    console.log(`[SUCCESS] Added ${data.gold_added} Gold to ${cleanUsername}`);
     return res.status(200).json(data);
-
   } catch (err) {
-    console.error('API Handler Error:', err.message);
+    console.error(err);
     return res.status(500).json({ error: err.message });
   }
 }
