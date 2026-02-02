@@ -2,19 +2,12 @@
   "name": "gold-topup-system",
   "version": "1.0.0",
   "description": "Auto Topup System for TikTok and SociaBuzz",
+  "main": "api/webhook.js",
   "dependencies": {
     "@supabase/supabase-js": "^2.39.8",
-    "formidable": "^3.5.1",
-    "lucide-react": "^0.344.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
-  },
-  "devDependencies": {
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
-    "typescript": "^5.0.0"
+    "formidable": "^3.5.1"
   },
   "engines": {
-    "node": "18.x"
+    "node": "22.x"
   }
 }
