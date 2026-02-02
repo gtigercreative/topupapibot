@@ -8,6 +8,16 @@ export const config = {
   },
 };
 
+export default async function handler(req, res) {
+  // Tambahkan baris ini untuk mengintip data
+  console.log("--- WEBHOOK DATA MASUK ---");
+  console.log("Method:", req.method);
+  console.log("Query:", req.query);
+  console.log("Body:", req.body); // Jika JSON
+  // Jika pakai formidable, log dataInput yang sudah di-parse
+  // console.log("Parsed Form:", dataInput); 
+  console.log("---------------------------");
+  
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
